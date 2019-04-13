@@ -126,6 +126,7 @@ Splinter中标签查找支持链式查找，及可以使用`driver.find_by_id().
 ```python
 driver.find_by_xpath('//*[@data-catalog="'+db+'"]').first.find_by_xpath('.//*[@class="check dbSelected"]').click()
 ```
+
 2.选择特定数据库中的特定表：
 
 ```python
@@ -137,3 +138,8 @@ driver.find_by_xpath('//*[@data-catalog="'+db+'"]').first.find_by_xpath('.//*[@c
 #         print(len(ele_t.find_by_xpath('.//*[contains(@class,"check tblSelected")]')))
 #         ele_t.find_by_xpath('.//*[contains(@class,"check tblSelected")]').first.click()
 ```
+
+### 完整实例
+
+* [12306自动订票](https://github.com/jacky-wangjj/12306/blob/master/splinterTicket/hackTickets.py)
+* [datahub数据自动导入](https://github.com/jacky-wangjj/PythonUtils/blob/master/datahub/SplinterUtils.py)
