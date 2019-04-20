@@ -290,3 +290,76 @@ if __name__ == "__main__":
     state = 0
     create_user(username,password,roleType,realname,email,phone,state)
 ```
+
+### 常见问题及解决方法  
+- 手动设置一个固定的cookie  
+  通过`requests.utils.add_dict_to_cookiejar`对session对象设置cookie  
+  ```python
+  cookie_default = {
+    'ADMSystemCookie': 'CurrentRegion=BJ',
+    's_fid': '6802050D76143D97-0A725FF637519282',
+    's_vi': '[CS]v1|2E5C0691850361BD-40001198A006DD1B[CE]',
+    '_ga': 'GA1.2.664304442.1555566091',
+    's_nr': '1555568316455'
+  }
+  requests.utils.add_dict_to_cookiejar(session.cookies, cookie_default)
+  print(session.cookie)
+  ```
+  通过`requests.utils.cookiejar_from_dict`生成一个cookiejar对象，然后赋值给session.cookie
+  ```python
+  cookie_default = {
+    'ADMSystemCookie': 'CurrentRegion=BJ',
+    's_fid': '6802050D76143D97-0A725FF637519282',
+    's_vi': '[CS]v1|2E5C0691850361BD-40001198A006DD1B[CE]',
+    '_ga': 'GA1.2.664304442.1555566091',
+    's_nr': '1555568316455'
+  }
+  session.cookie = requests.utils.cookiejar_from_dict(cookie_default)
+  ```
+  也可以使用`session.cookies.set()`或者`update()`
+
+- 获取session中的cookie到字典对象  
+  ```python
+  cookie_dict = requests.utils.dict_from_cookiejar(session.cookies)
+  cookie_dict: {"ADMSystemCookie": "CurrentRegion=BJ", "_ga": "GA1.2.664304442.1555566091", "s_fid": "6802050D76143D97-0A725FF637519282", "s_nr": "1555568316455", "s_vi": "[CS]v1|2E5C0691850361BD-40001198A006DD1B[CE]", "HPassportSignIn": "zI8iM/Ir9AD+rGM7bOdCc4ZchQFlzCTKr+DkaDcjA6FUTwsJVD2wNKCZ9itVpmN/Sl+hCZwwLlAbGyH+6+uNdns7BcOHYTNLWdi+TrI7BqlQSWGSmY/g9Ejiot/BvR4vqOIVQWLOZZgkXBde5u4eLMbXA2ZaTfADw5YwiTe/Vn2FfduONGNltRLPFKpwLDU7EtfWyiUSbiFVa4/UoHxtHY0jb/xEDTarKg+9swiwZuVCwFkBS+uOth8VKUxCrMsMxjLj27lDrlnJXf6/GaHt0yp94TLABl+6l7EzJmo5jPTBcqqblnSLo+GjHEjXVqj3FT7j/GbTqJsxbTr7E59aIGKWfJUjcIXTTMkY4Zcc4wK0SIsTzZDc84J6Sy5/z3hB", ".ASPXAUTH": "B4D0BDCE120E24BEB870F50FF1B664B4B893351BD37906EFD5EDA61965C04899054734C32A1C0CA1BEB2DA0A88B30D299F128C0256E75198041821897EC982F622E6EC89851169477B01922CE190D717C2FB0D3C3527737E4D4A090D630BAB4A51003F0C4965E6CF4C6DDA00142B63045CB9B5619DC4D6AF6CBEE34FE05AA45A3064EB7C05B57644A140C3BAE3B3CDEE", "ASP.NET_SessionId": "iusb3m05na1fbg2kqw1zrg0b"}
+  ```
+
+- 当请求的`url`为`https`协议时，报错`requests.exceptions.SSLError:("bad handshake:Error([('SSL routines', 'ssl3_get_server_certificate', 'certificate verify failed')],)",)`  
+  [高级用法](http://docs.python-requests.org/zh_CN/latest/user/advanced.html)中‘SSL证书验证’一节中有介绍，可以使用`verify`设置为`False`，Requests能忽略对SSL证书的验证。
+  ```python
+  url_WISTS = 'https://oacp.lenovo.com/MCSWebApp/ResponsivePassportService/Anonymous/WISTS.ashx'
+  session.get(url_WISTS, params=params, headers=headers, cookies=cookie_dict, verify=False)
+  ```
+
+- [以form形式或json形式发送POST请求](https://blog.csdn.net/weixin_40283480/article/details/79208413)  
+  常常会遇到明明写的是`POST请求`却得到了和`GET请求`一样的结果，但是使用`postman工具`进行模拟POST请求时却能成功，这就是发送请求时参数的形式不对造成的。  
+
+  以form形式发送POST请求  
+  ```python
+  # 获取小米有品的分类信息  
+  headers = {
+          "Host": "youpin.mi.com",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Referer": "https://youpin.mi.com/",  # 必须带这个参数，不然会报错
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36",
+               }
+  url = "https://youpin.mi.com/app/shopv3/pipe"
+  form_data = {"data": '{"result": {"model": "Homepage", "action": "BuildClass", "parameters": {"id": -6}}}'}
+  results = requests.post(url, data=form_data, headers=headers).text
+  print(results)
+  ```
+  以json形式发送POST请求
+  ```python
+  # http://jinbao.pinduoduo.com/index?page=1里面的分类，
+  import requests
+  import json
+  headers = {
+      "Content-Type": "application/json; charset=UTF-8",
+      "Referer": "http://jinbao.pinduoduo.com/index?page=5",
+      "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.87 Safari/537.36",
+      }
+  url = "http://jinbao.pinduoduo.com/network/api/common/goodsList"
+  pyload = {"keyword": "", "sortType": 0, "withCoupon": 0, "categoryId": 16, "pageNumber": 1, "pageSize": 60}
+  response = requests.post(url, data=json.dumps(pyload), headers=headers).text
+  print(response)
+  ```
