@@ -325,14 +325,15 @@ if __name__ == "__main__":
   ```
 
 - 当请求的`url`为`https`协议时，报错`requests.exceptions.SSLError:("bad handshake:Error([('SSL routines', 'ssl3_get_server_certificate', 'certificate verify failed')],)",)`  
-  [高级用法](http://docs.python-requests.org/zh_CN/latest/user/advanced.html)中‘SSL证书验证’一节中有介绍，可以使用`verify`设置为`False`，Requests能忽略对SSL证书的验证。
+  [高级用法](http://docs.python-requests.org/zh_CN/latest/user/advanced.html) 中**SSL证书验证**一节中有介绍，可以使用`verify`设置为`False`，Requests能忽略对SSL证书的验证。    
   ```python
   url_WISTS = 'https://oacp.lenovo.com/MCSWebApp/ResponsivePassportService/Anonymous/WISTS.ashx'
   session.get(url_WISTS, params=params, headers=headers, cookies=cookie_dict, verify=False)
   ```
 
-- [以form形式或json形式发送POST请求](https://blog.csdn.net/weixin_40283480/article/details/79208413)  
-  常常会遇到明明写的是`POST请求`却得到了和`GET请求`一样的结果，但是使用`postman工具`进行模拟POST请求时却能成功，这就是发送请求时参数的形式不对造成的。  
+- 以form形式或json形式发送POST请求    
+
+  常常会遇到明明写的是`POST请求`却得到了和`GET请求`一样的结果，但是使用`postman工具`进行模拟POST请求时却能成功，这就是发送请求时参数的形式不对造成的。[参考链接](https://blog.csdn.net/weixin_40283480/article/details/79208413)  
 
   以form形式发送POST请求  
   ```python
