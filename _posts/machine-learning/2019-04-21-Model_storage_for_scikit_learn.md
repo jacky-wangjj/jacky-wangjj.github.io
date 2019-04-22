@@ -2,7 +2,7 @@
 layout: post
 title: scikit-learn之模型存储与上线
 date: 2019-04-21
-tags: python
+tags: 机器学习
 ---  
 ### 模型存储
 - pickle保存模型到本地，不能跨平台使用
