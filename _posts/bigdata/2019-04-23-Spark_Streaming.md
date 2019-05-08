@@ -94,7 +94,7 @@ Spark Streaming使用“微批次”的架构，把流式计算当作一系列�
 Spark Streaming的编程抽象是离散化流，也就是DStream。它是一个RDD序列，每个RDD代表数据流中一个时间片内的数据。    
 
 DStream及其转化关系    
-![](http://localhost:4000/images/blog/machine-learning/spark-streaming-DStream-eg-1.png#pic_center)    
+![](https://jacky-wangjj.github.io/images/blog/machine-learning/spark-streaming-DStream-eg-1.png#pic_center)    
 
 Spark作业可以在 http://localhost:4040 查看。    
 

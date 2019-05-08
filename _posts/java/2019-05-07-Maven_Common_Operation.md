@@ -118,7 +118,7 @@ tags: maven
   </exclusions>
   ```
   如图所示：       
-  ![](http://localhost:4000/images/blog/maven/springboot-exclusion-logback.png#pic_center)
+  ![](https://jacky-wangjj.github.io/images/blog/maven/springboot-exclusion-logback.png#pic_center)
 
 ### Maven在MANIFEST.MF文件中的Class-Path添加指定路径。
 添加manifestEntries
