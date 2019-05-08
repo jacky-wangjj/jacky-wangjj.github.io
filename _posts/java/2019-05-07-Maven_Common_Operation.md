@@ -71,7 +71,7 @@ tags: maven
 [参考资料](https://www.cnblogs.com/stm32stm32/p/9973325.html)    
 
 ### Spring Boot修改默认Logback替换为log4j
-1. 去除对默认日志的依赖
+1) 去除对默认日志的依赖   
   ```xml
   <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -85,7 +85,8 @@ tags: maven
       </exclusions>
   </dependency>
   ```
-2. 添加对log4j的依赖  
+
+2) 添加对log4j的依赖   
   ```xml
   <!-- 添加 log4j 依赖 -->
   <dependency>
@@ -116,8 +117,7 @@ tags: maven
       </exclusion>
   </exclusions>
   ```
-  如图所示：    
-  ![](https://jacky-wangjj.github.io/images/blog/maven/springboot-exclusion-logback.png#pic_center)    
+  如图所示：       
   ![](http://localhost:4000/images/blog/maven/springboot-exclusion-logback.png#pic_center)
 
 ### Maven在MANIFEST.MF文件中的Class-Path添加指定路径。

@@ -95,7 +95,6 @@ Spark Streaming的编程抽象是离散化流，也就是DStream。它是一个R
 
 DStream及其转化关系    
 ![](http://localhost:4000/images/blog/machine-learning/spark-streaming-DStream-eg-1.png#pic_center)    
-![](https://jacky-wangjj.github.io/images/blog/machine-learning/spark-streaming-DStream-eg-1.png#pic_center)
 
 Spark作业可以在 http://localhost:4040 查看。    
 
