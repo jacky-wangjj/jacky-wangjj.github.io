@@ -181,6 +181,104 @@ if __name__ == "__main__":
     cmdline.execute("scrapy crawl stack".split())
 ```
 
+### Scrapyd安装与使用
+使用pip直接安装scrapyd和scrapyd-client
+```shell
+pip install scrapyd
+pip install scrapyd-client
+```
+scrapyd默认配置修改       
+/root/anaconda2/envs/wangjj17_3.6/lib/python3.6/site-packages/scrapyd/default_scrapyd.conf
+```shell
+[scrapyd]
+eggs_dir    = /home/data/liebao/eggs
+logs_dir    = /home/data/liebao/logs
+items_dir   = /home/data/liebao/item
+jobs_to_keep = 5
+dbs_dir     = /home/data/liebao/dbs
+max_proc    = 0
+max_proc_per_cpu = 4
+finished_to_keep = 100
+poll_interval = 5.0
+bind_address = 0.0.0.0
+http_port   = 6800
+debug       = off
+runner      = scrapyd.runner
+application = scrapyd.app.application
+launcher    = scrapyd.launcher.Launcher
+webroot     = scrapyd.website.Root
+
+[services]
+schedule.json     = scrapyd.webservice.Schedule
+cancel.json       = scrapyd.webservice.Cancel
+addversion.json   = scrapyd.webservice.AddVersion
+listprojects.json = scrapyd.webservice.ListProjects
+listversions.json = scrapyd.webservice.ListVersions
+listspiders.json  = scrapyd.webservice.ListSpiders
+delproject.json   = scrapyd.webservice.DeleteProject
+delversion.json   = scrapyd.webservice.DeleteVersion
+listjobs.json     = scrapyd.webservice.ListJobs
+daemonstatus.json = scrapyd.webservice.DaemonStatus
+```
+
+版本问题：Scrapy==1.6.0 Twisted==18.9.0          
+[scrapyd 问题 builtins.AttributeError: 'int' object has no attribute 'splitlines'](https://blog.csdn.net/qq_29719097/article/details/89431234)
+```shell
+pip list
+pip uninstall Twisted
+pip install Twisted==18.9.0
+```
+
+启动scrapyd服务
+```shell
+nohup scrapyd >> /var/scrapyd/scrapyd.log 2>&1 &
+```
+
+修改项目根目录scrapy.cfg
+```
+[deploy]
+url = http://localhost:6800/
+project = scrapy_learning
+```
+
+项目根目录执行scrapyd-deploy发布爬虫到scrapyd服务
+```shell
+scrapyd-deploy -p scrapy_learning
+```
+
+启动爬虫     
+```shell
+curl http://localhost:6800/schedule.json -d project=scrapy_learning -d spider=stack
+```
+
+可以在浏览器查看爬虫运行情况      
+10.110.181.40:6800/jobs
+
+终止爬虫
+```shell
+curl http://localhost:6800/cancel.json -d project=scrapy_learning -d job=ede3c8dc7c7611e9b28e0050568b7b68
+```
+
+列出工程
+```shell
+curl http://localhost:6800/listprojects.json
+```
+
+列出爬虫
+```shell
+curl http://localhost:6800/listspiders.json?project=scrapy_learning
+```
+
+列出job
+```shell
+curl http://localhost:6800/listjobs.json?project=scrapy_learning
+```
+
+删除项目
+```shell
+curl http://localhost:6800/delproject.json?project=scrapy_learning
+```
+
 ### 参考资料    
 [PyCharm中的scrapy安装教程](https://www.cnblogs.com/xiaoli2018/p/4566639.html)    
 [利用scrapy和MongoDB来开发一个爬虫](https://www.cnblogs.com/tianyake/p/5518200.html)    
