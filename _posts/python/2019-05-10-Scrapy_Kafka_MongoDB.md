@@ -279,6 +279,14 @@ curl http://localhost:6800/listjobs.json?project=scrapy_learning
 curl http://localhost:6800/delproject.json?project=scrapy_learning
 ```
 
+### Scrapyd API           
+```shell
+pip install python-scrapyd-api
+```
+使用介绍：      
+https://pypi.org/project/python-scrapyd-api/            
+https://python-scrapyd-api.readthedocs.io/en/latest/usage.html#quick-usage           
+
 ### 参考资料    
 [PyCharm中的scrapy安装教程](https://www.cnblogs.com/xiaoli2018/p/4566639.html)    
 [利用scrapy和MongoDB来开发一个爬虫](https://www.cnblogs.com/tianyake/p/5518200.html)    
