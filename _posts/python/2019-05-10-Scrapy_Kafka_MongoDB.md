@@ -86,6 +86,52 @@ $ pip install scrapy-kafka
 
 [scrapy-kafka-redis](https://github.com/tenlee2012/scrapy-kafka-redis)    
 
+### scrapy整合MongoDB
+这里我们将所有元素保存到MongoDB的testdb数据库questions集合中。       
+首先安装pymongo相关包
+```shell
+pip install bson
+pip install pymongo
+```
+
+在settings指定相应的pipeline并添加一些数据库参数      
+```python
+ITEM_PIPELINES = {
+   'scrapy_learning.pipelines.MongoDBPipeline': 300,
+}
+MONGODB_SERVER = '10.110.181.40'
+MONGODB_PORT = 27017
+MONGODB_DB = 'testdb'
+MONGODB_COLLECTION = 'questions'
+MONGODB_USER = 'test'
+MONGODB_PWD = 'test'
+```
+
+在pipelines.py中添加数据存储相关代码
+```python
+import pymongo
+from scrapy import log
+from scrapy.exceptions import DropItem
+
+class MongoDBPipeline(object):
+    def __init__(self):
+        connection = pymongo.MongoClient(settings.MONGODB_SERVER, settings.MONGODB_PORT)
+        db = connection[settings.MONGODB_DB]
+        db.authenticate(settings.MONGODB_USER, settings.MONGODB_PWD)
+        self.collection = db[settings.MONGODB_COLLECTION]
+
+    def process_item(self,item,spider):
+        valid = True
+        for data in item:
+            if not data:
+                valid = False
+                raise DropItem("Missing{0}".format(data))
+        if valid:
+            self.collection.insert(dict(item))
+            log.msg('question added to mongodb database!', level=log.DEBUG, spider=spider)
+        return item
+```
+
 ### 实例
 新建项目scrapy_learning     
 ```shell
@@ -106,26 +152,44 @@ class ScrapyLearningItem(scrapy.Item):
     url = scrapy.Field()
     pass
 ```
+
 scrapy_learning/settings.py
 ```python
 BOT_NAME = 'scrapy_learning'
 
 SPIDER_MODULES = ['scrapy_learning.spiders']
 NEWSPIDER_MODULE = 'scrapy_learning.spiders'
+
 ROBOTSTXT_OBEY = True
+
 ITEM_PIPELINES = {
    'scrapy_learning.pipelines.ScrapyLearningPipeline': 300,
+   'scrapy_learning.pipelines.MongoDBPipeline': 300,
 }
+
+# MongoDB相关参数配置
+MONGODB_SERVER = '10.110.181.40'
+MONGODB_PORT = 27017
+MONGODB_DB = 'testdb'
+MONGODB_COLLECTION = 'questions'
+MONGODB_USER = 'test'
+MONGODB_PWD = 'test'
+
 # kafka配置
 KAFKA_IP_PORT = ["10.110.181.40:6667"]
 KAFKA_TOPIC = "scrapy_kafka"
 ```
+
 scrapy_learning/pipelines.py
 ```python
+import pymongo
 from pykafka import KafkaClient
+from scrapy import log
+from scrapy.exceptions import DropItem
 from scrapy.utils.serialize import ScrapyJSONEncoder
 
 from scrapy_learning import settings
+
 
 class ScrapyLearningPipeline(object):
     def __init__(self):
@@ -148,11 +212,31 @@ class ScrapyLearningPipeline(object):
         msg = self._encoder.encode(item)
         print(msg)
         self._producer.produce(msg.encode(encoding="UTF-8"))
+        # self._producer.produce(item['url'].encode(encoding="UTF-8"))
         return item
 
     def close_spider(self,spider):
         self._producer.stop()
+
+class MongoDBPipeline(object):
+    def __init__(self):
+        connection = pymongo.MongoClient(settings.MONGODB_SERVER, settings.MONGODB_PORT)
+        db = connection[settings.MONGODB_DB]
+        db.authenticate(settings.MONGODB_USER, settings.MONGODB_PWD)
+        self.collection = db[settings.MONGODB_COLLECTION]
+
+    def process_item(self,item,spider):
+        valid = True
+        for data in item:
+            if not data:
+                valid = False
+                raise DropItem("Missing{0}".format(data))
+        if valid:
+            self.collection.insert(dict(item))
+            log.msg('question added to mongodb database!', level=log.DEBUG, spider=spider)
+        return item
 ```
+
 scrapy_learning/spiders/example.py
 ```python
 import scrapy
@@ -173,6 +257,17 @@ class ExampleSpider(scrapy.Spider):
             item['url'] = question.xpath('a[@class="question-hyperlink"]/@href').extract()[0]
             yield item
 ```
+
+scrapy.cfg
+```
+[settings]
+default = scrapy_learning.settings
+
+[deploy]
+url = http://10.110.181.40:6800/
+project = scrapy_learning
+```
+
 begin.py
 ```python
 from scrapy import cmdline
