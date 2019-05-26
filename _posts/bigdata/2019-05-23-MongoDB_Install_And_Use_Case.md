@@ -389,8 +389,8 @@ projection ：可选，使用投影操作符指定返回的键。查询时返回
 }
 ```
 
-MongoDB与RDBMS Where语句比较
-![](![](https://jacky-wangjj.github.io/images/blog/bigdata/mongodb-vs-rdbms-where.png#pic_center)      
+MongoDB与RDBMS Where语句比较        
+![](https://jacky-wangjj.github.io/images/blog/bigdata/mongodb-vs-rdbms-where.png#pic_center)      
 
 MongoDB的`find()`方法可以出入多个键，每个键以逗号隔开，类似常规SQL的AND条件查询。      
 ```shell
