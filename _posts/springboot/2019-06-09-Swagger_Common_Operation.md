@@ -8,22 +8,19 @@ tags: springboot
 [swagger官网](https://swagger.io/): https://swagger.io/       
 Swagger 是一个规范和完整的框架，用于生成、描述、调用和可视化 RESTful 风格的 Web 服务。       
 
-
-https://www.imooc.com/article/71842
-
-
 - maven依赖      
+
 ```xml
-<dependency>
-    <groupId>io.springfox</groupId>
-    <artifactId>springfox-swagger2</artifactId>
-    <version>2.2.2</version>
-</dependency>
-<dependency>
-    <groupId>io.springfox</groupId>
-    <artifactId>springfox-swagger-ui</artifactId>
-    <version>2.2.2</version>
-</dependency>
+  <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger2</artifactId>
+      <version>2.2.2</version>
+  </dependency>
+  <dependency>
+      <groupId>io.springfox</groupId>
+      <artifactId>springfox-swagger-ui</artifactId>
+      <version>2.2.2</version>
+  </dependency>
 ```
 
 ### swagger配置
@@ -243,3 +240,7 @@ private Integer level;
 ### 通过SwaggerHub编写接口文档
 
 https://blog.csdn.net/qq_32589355/article/details/81089954
+
+### Swagger强大的API文档工具
+
+https://www.imooc.com/article/71842
