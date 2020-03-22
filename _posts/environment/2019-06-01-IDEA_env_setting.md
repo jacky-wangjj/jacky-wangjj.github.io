@@ -25,7 +25,7 @@ C -> Windows -> System32 -> drivers -> etc -> hosts 添加如下配置
 
 #### 永久破解
 下载JetbrainsIdesCrack-4.2.jar        
-链接: https://pan.baidu.com/s/1VH2uxFzxWpllmdjzF82GRg 提取码: r9mj       
+链接: https://pan.baidu.com/s/1VH2uxFzxWpllmdjzF82GRg 提取码:        
 
 修改bin/idea.exe.vmoptions和bin/idea64.exe.vmoptions，添加如下内容：         
 ```
