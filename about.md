@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 关于我 
+title: 关于我
 ---
 
 一个 大数据/机器学习 开发者，喜欢研究一些好玩的东西。
@@ -18,5 +18,3 @@ title: 关于我
 Email: iot_wangjunjie@163.com
 
 Github: <a target="_blank" href='https://github.com/jacky-wangjj/'>https://github.com/jacky-wangjj</a>
-
-博客源码在 <a target="_blank" href='https://github.com/jacky-wangjj/jacky-wangjj.github.io/'>Github</a> 上，你的 Star 是我更新的动力，谢谢~
