@@ -61,3 +61,23 @@ wine navicat-keygen.exe -text ./RegPrivateKey.pem
 ![](https://jacky-wangjj.github.io/images/blog/env/ubuntu-install-navicat/markdown-img-paste-20200322142207952.png)
 
 大功告成！！！
+
+### 中文乱码配置
+- 修改start-navicat       
+export LANG="zh_CN.UTF-8"       
+
+- 修改start-navicat仍乱码      
+安装 文泉驿字体     
+```shell
+sudo apt-get install ttf-wqy-microhei  #文泉驿-微米黑
+sudo apt-get install ttf-wqy-zenhei  #文泉驿-正黑
+sudo apt-get install xfonts-wqy #文泉驿-点阵宋体
+```
+
+设置navicat TOOLs Option 更改字体为  WenQuanYi Zen Hei Sharp即可解决，其中有三处字体需要更改      
+
+![](https://jacky-wangjj.github.io/images/blog/env/ubuntu-install-navicat/markdown-img-paste-20200322144139436.png)
+
+![](https://jacky-wangjj.github.io/images/blog/env/ubuntu-install-navicat/markdown-img-paste-20200322144149476.png)
+
+![](https://jacky-wangjj.github.io/images/blog/env/ubuntu-install-navicat/markdown-img-paste-20200322144203294.png)
