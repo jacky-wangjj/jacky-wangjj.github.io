@@ -12,9 +12,9 @@ tags: interview
 - structs: STRUCT<col_name : data_type [COMMENT col_comment], ...>
 - union: UNIONTYPE<data_type, data_type, ...>
 
-FIELDS TERMINATED BY表示字段与字段之间的分隔符
-COLLECTION ITEMS TERMINATED BY表示一个字段中各个item之间的分隔符[可用于array和struct类型]
-MAP KEYS TERMINATED BY表示map类型中的key/value的分隔符[可用于map类型]
+FIELDS TERMINATED BY表示字段与字段之间的分隔符   
+COLLECTION ITEMS TERMINATED BY表示一个字段中各个item之间的分隔符[可用于array和struct类型]    
+MAP KEYS TERMINATED BY表示map类型中的key/value的分隔符[可用于map类型]    
 ```shell
 # 创建表
 create table union_testnew(
@@ -401,112 +401,112 @@ select dealid, count(distinct uid) num from order group by dealid;
 - 相同的数据尽量聚集在一起
 
 ##### hive job优化
-- 并行化执行
-每个查询被转化成多个阶段，有些阶段关联性不大，可以并行化执行，减少执行时间。
-set hive.exec.parallel=true;
-set hive.exec.parallel.thread.number=8;
-- 本地化执行
-job的输入数据大小必须小于hive.exec.mode.local.auto.inputbytes.max(默认128M)
-job的map数必须小于hive.exec.mode.local.auto.tasks.max(默认4)
-job的reduce数必须为0或1
-set hive.exec.mode.local.auto=true;
-- 合并输入小文件
-set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat
-合并文件数有mapred.max.split.size限制的大小决定
-- 合并输出小文件
-set hive.merge.smallfiles.avgsize=256000000;当输出文件平均小于该值，启动新job合并文件
-set hive.merge.size.per.task=64000000;合并之后的文件大小
-- JVM重用
-set mapred.job.reuse.jvm.num.tasks=20;
-JVM重用可以使得job长时间保留slot，直到作业结束，这对于有较多任务和较多小文件的任务非常有意义，减少执行时间。当然这个值不能设置过大，因为有些作业会有reduce任务，如果reduce任务没有完成，则map任务占用的slot不释放，其他的作用可能就需要等待。
-- 压缩数据
-查询**结果压缩输出**。
-set hive.exec.compress.output=true;
-set mapred.output.compreession.codec=org.apache.hadoop.io.compress.GzipCodec;
-set mapred.output.compression.type=BLOCK;
-**中间数据压缩**处理的是hive多个job之间的数据，对于中间压缩最好选择节省cpu耗时的压缩方式。
-set hive.exec.compress.intermediate=true;
-set hive.intermediate.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;
-set hive.intermediate.compression.type=BLOCK;
+- 并行化执行        
+每个查询被转化成多个阶段，有些阶段关联性不大，可以并行化执行，减少执行时间。      
+set hive.exec.parallel=true;         
+set hive.exec.parallel.thread.number=8;   
+- 本地化执行   
+job的输入数据大小必须小于hive.exec.mode.local.auto.inputbytes.max(默认128M)    
+job的map数必须小于hive.exec.mode.local.auto.tasks.max(默认4)    
+job的reduce数必须为0或1   
+set hive.exec.mode.local.auto=true;   
+- 合并输入小文件   
+set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat   
+合并文件数有mapred.max.split.size限制的大小决定    
+- 合并输出小文件   
+set hive.merge.smallfiles.avgsize=256000000;当输出文件平均小于该值，启动新job合并文件    
+set hive.merge.size.per.task=64000000;合并之后的文件大小   
+- JVM重用   
+set mapred.job.reuse.jvm.num.tasks=20;    
+JVM重用可以使得job长时间保留slot，直到作业结束，这对于有较多任务和较多小文件的任务非常有意义，减少执行时间。当然这个值不能设置过大，因为有些作业会有reduce任务，如果reduce任务没有完成，则map任务占用的slot不释放，其他的作用可能就需要等待。   
+- 压缩数据    
+查询**结果压缩输出**。   
+set hive.exec.compress.output=true;   
+set mapred.output.compreession.codec=org.apache.hadoop.io.compress.GzipCodec;   
+set mapred.output.compression.type=BLOCK;   
+**中间数据压缩**处理的是hive多个job之间的数据，对于中间压缩最好选择节省cpu耗时的压缩方式。    
+set hive.exec.compress.intermediate=true;   
+set hive.intermediate.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;    
+set hive.intermediate.compression.type=BLOCK;   
 
 ##### Hive Map优化
-set mapred.map.tasks =10; 无效
-(1)默认map个数
-default_num=total_size/block_size;
-(2)期望大小
-goal_num=mapred.map.tasks;
-(3)设置处理的文件大小
-split_size=max(mapred.min.split.size,block_size);
-split_num=total_size/split_size;
-(4)计算的map个数
-compute_map_num=min(split_num,max(default_num,goal_num))
-经过以上的分析，在设置map个数的时候，可以简答的总结为以下几点：
-增大mapred.min.split.size的值
-如果想增加map个数，则设置mapred.map.tasks为一个较大的值
-如果想减小map个数，则设置mapred.min.split.size为一个较大的值
-情况1：输入文件size巨大，但不是小文件
-情况2：输入文件数量巨大，且都是小文件，就是单个文件的size小于blockSize。这种情况通过增大mapred.min.split.size不可行，需要使用combineFileInputFormat将多个input path合并成一个InputSplit送给mapper处理，从而减少mapper的数量。
-map端聚合
-set hive.map.aggr=true;
-推测执行
-mapred.map.tasks.apeculative.execution
+set mapred.map.tasks =10; 无效    
+(1)默认map个数    
+default_num=total_size/block_size;    
+(2)期望大小   
+goal_num=mapred.map.tasks;    
+(3)设置处理的文件大小    
+split_size=max(mapred.min.split.size,block_size);   
+split_num=total_size/split_size;    
+(4)计算的map个数   
+compute_map_num=min(split_num,max(default_num,goal_num))    
+经过以上的分析，在设置map个数的时候，可以简答的总结为以下几点：   
+增大mapred.min.split.size的值   
+如果想增加map个数，则设置mapred.map.tasks为一个较大的值   
+如果想减小map个数，则设置mapred.min.split.size为一个较大的值    
+情况1：输入文件size巨大，但不是小文件   
+情况2：输入文件数量巨大，且都是小文件，就是单个文件的size小于blockSize。这种情况通过增大mapred.min.split.size不可行，需要使用combineFileInputFormat将多个input path合并成一个InputSplit送给mapper处理，从而减少mapper的数量。   
+map端聚合    
+set hive.map.aggr=true;   
+推测执行    
+mapred.map.tasks.apeculative.execution    
 
 ##### Hive Shuffle优化
-Map端
-io.sort.mb
-io.sort.spill.percent
-min.num.spill.for.combine
-io.sort.factor
-io.sort.record.percent
-Reduce端
-mapred.reduce.parallel.copies
-mapred.reduce.copy.backoff
-io.sort.factor
-mapred.job.shuffle.input.buffer.percent
-mapred.job.shuffle.input.buffer.percent
-mapred.job.shuffle.input.buffer.percent
+Map端    
+io.sort.mb    
+io.sort.spill.percent   
+min.num.spill.for.combine   
+io.sort.factor    
+io.sort.record.percent    
+Reduce端   
+mapred.reduce.parallel.copies   
+mapred.reduce.copy.backoff    
+io.sort.factor    
+mapred.job.shuffle.input.buffer.percent   
+mapred.job.shuffle.input.buffer.percent   
+mapred.job.shuffle.input.buffer.percent   
 ##### Hive Reduce优化
-需要reduce操作的查询
-group by,join,distribute by,cluster by...
-order by比较特殊,只需要一个reduce
-sum,count,distinct...
-聚合函数
-高级查询
-推测执行
-mapred.reduce.tasks.speculative.execution
-hive.mapred.reduce.tasks.speculative.execution
-Reduce优化
-numRTasks = min[maxReducers,input.size/perReducer]
-maxReducers=hive.exec.reducers.max
-perReducer = hive.exec.reducers.bytes.per.reducer
-hive.exec.reducers.max 默认 ：999
-hive.exec.reducers.bytes.per.reducer 默认:1G
-set mapred.reduce.tasks=10;直接设置
+需要reduce操作的查询   
+group by,join,distribute by,cluster by...   
+order by比较特殊,只需要一个reduce    
+sum,count,distinct...   
+聚合函数    
+高级查询    
+推测执行    
+mapred.reduce.tasks.speculative.execution   
+hive.mapred.reduce.tasks.speculative.execution    
+Reduce优化    
+numRTasks = min[maxReducers,input.size/perReducer]    
+maxReducers=hive.exec.reducers.max    
+perReducer = hive.exec.reducers.bytes.per.reducer   
+hive.exec.reducers.max 默认 ：999    
+hive.exec.reducers.bytes.per.reducer 默认:1G    
+set mapred.reduce.tasks=10;直接设置   
 
 ##### Hive查询操作优化
-- join优化
-1）select /*+mapjoin(A)*/ f.a,f.b from A t join B f on (f.a=t.a)
-2）Bucket join
-两个表以相同方式划分桶
-两个表的桶个数是倍数关系
-create table order(cid int,price float) clustered by(cid) into 32 buckets;
-create table customer(id int,first string) clustered by(id) into 32 buckets;
-select price from order t join customer s on t.cid=s.id
-3）hive.optimize.skewjoin=true;如果是Join过程出现倾斜，应该设置为true
-set hive.skewjoin.key=100000; 这个是join的键对应的记录条数超过这个值则会进行优化
-4）join小表放在左边，大表放在右边；这点与关系型数据库不同。
-5）join的表中如果有多行数据重复时，join会有m*n个重复结果，浪费时间。
+- join优化    
+1）select /*+mapjoin(A)*/ f.a,f.b from A t join B f on (f.a=t.a)   
+2）Bucket join   
+两个表以相同方式划分桶   
+两个表的桶个数是倍数关系    
+create table order(cid int,price float) clustered by(cid) into 32 buckets;    
+create table customer(id int,first string) clustered by(id) into 32 buckets;    
+select price from order t join customer s on t.cid=s.id   
+3）hive.optimize.skewjoin=true;如果是Join过程出现倾斜，应该设置为true   
+set hive.skewjoin.key=100000; 这个是join的键对应的记录条数超过这个值则会进行优化   
+4）join小表放在左边，大表放在右边；这点与关系型数据库不同。    
+5）join的表中如果有多行数据重复时，join会有m*n个重复结果，浪费时间。    
 
-- group by优化
-hive.groupby.skewindata=true;如果是group by 过程出现倾斜 应该设置为true
-set hive.groupby.mapaggr.checkinterval=100000;--这个是group的键对应的记录条数超过这个值则会进行优化
+- group by优化    
+hive.groupby.skewindata=true;如果是group by 过程出现倾斜 应该设置为true   
+set hive.groupby.mapaggr.checkinterval=100000;--这个是group的键对应的记录条数超过这个值则会进行优化    
 
-- count distinct优化
-select count(distinct id) from tbl;
-select count(1) from (select id from tbl group by id) t;
+- count distinct优化    
+select count(distinct id) from tbl;   
+select count(1) from (select id from tbl group by id) t;    
 
 ##### Hive查询结果导出到文件
-- insert overwrite directory
+- insert overwrite directory    
 ```shell
 ##写入本地文件时加local，写入hdfs不加。导出时指定列分隔符'\t'，行分隔符'\n'
 INSERT overwrite [local] directory '/user/hive/wangjj/result'
@@ -535,6 +535,6 @@ df = spark.sql("select * from tbl")
 df.write.csv()
 ```
 
-参考资料：
-https://zhuanlan.zhihu.com/p/67566718
-https://zhuanlan.zhihu.com/p/65436503
+参考资料：   
+https://zhuanlan.zhihu.com/p/67566718   
+https://zhuanlan.zhihu.com/p/65436503   
