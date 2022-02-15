@@ -1,7 +1,7 @@
 ---
 layout: post
 title: GitHub+Jekyll搭建个人博客详解
-date: 2019-04-09 
+date: 2019-04-09
 tags: 环境
 ---
 ### 工具
@@ -16,7 +16,7 @@ tags: 环境
 ### 网站托管
 
 直接使用GitHub提供的GitHub Pages功能，展示博客的页面。
-    
+
 1. 首先需要到[GitHub](https://github.com/)上注册账号，例如我注册的是jacky-wangjj；
 2. 点击New repository -> 输入仓库名称（格式为<用户名>.github.io，如jacky-wangjj.github.io）-> 点击Create repository；
 
@@ -52,7 +52,7 @@ jekyll new blog
 jekyll serve
 ```
 7. 查看页面：浏览器访问[localhost:4000](http://localhost:4000)
-    
+
 ### 下载博客模板并修改
 
 我这里直接使用的[leopardpan](https://github.com/leopardpan/leopardpan.github.io)修改过的模板，按照自己需要进行修改即可。
@@ -82,6 +82,31 @@ jekyll serve
     注册百度统计账号，新增网站 -> 输入网站域名：jacky-wangjj.github.io；网站首页：https://jacky-wangjj.github.io -> 确定；  
 3. 添加[来比力评论](https://www.livere.com/)；  
     注册来比力账号，关联网站的URL；    
+    隐藏来比力评论系统广告
+    ```
+    <!-- 来必力City版安装代码 -->
+    <!-- 屏蔽来比力广告 -->
+    <style>
+        #taboola-livere { display: none;}
+    </style>
+    <div id="lv-container" data-id="city" data-uid="MTAyMC80MzYzMS8yMDE3MA==">
+        <script type="text/javascript">
+            (function(d, s) {
+                var j, e = d.getElementsByTagName(s)[0];
+
+                if (typeof LivereTower === 'function') { return; }
+
+                j = d.createElement(s);
+                j.src = 'https://cdn-city.livere.com/js/embed.dist.js';
+                j.async = true;
+
+                e.parentNode.insertBefore(j, e);
+            })(document, 'script');
+        </script>
+        <noscript> 为正常使用来必力评论功能请激活JavaScript</noscript>
+    </div>
+    <!-- City版安装代码已完成 -->
+    ```
 4. 添加[RSS订阅](https://www.jianshu.com/p/da39860bb5f5)；
 5. 使用[不蒜子](https://www.cnblogs.com/daoyi/p/jing-tai-wang-zhan-shi-yong-bu-suan-zi-xian-shi-li.html)统计浏览量；
 
