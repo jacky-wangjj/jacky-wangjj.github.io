@@ -4,7 +4,6 @@ title: 【已解决】OpenSSL SSL_connect: Connection was reset in connection to
 date: 2022-02-16
 tags: github
 ---  
-# 【已解决】OpenSSL SSL_connect: Connection was reset in connection to github.com:443
 
 今天在使用git命令进行push和pull时，出现如下报错     
 ```bash
