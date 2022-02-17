@@ -1,10 +1,10 @@
 ---
 layout: post
-title: 【已解决】Logon failed, use ctrl+c to cancel basic credential prompt
+title: 【已解决】Logon failed use ctrl+c to cancel basic credential prompt
 date: 2022-02-16
 tags: github
 ---  
-# Logon failed, use ctrl+c to cancel basic credential prompt.
+# 【已解决】Logon failed, use ctrl+c to cancel basic credential prompt.
 
 本地推送代码带Git仓库失败,报错Logon failed, use ctrl+c to cancel basic credential prompt.
 
