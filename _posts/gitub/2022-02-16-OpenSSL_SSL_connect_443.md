@@ -1,10 +1,11 @@
 ---
 layout: post
-title: 【已解决】OpenSSL SSL_connect Connection was reset in connection to github com 443
+title: 【已解决】OpenSSL SSL_connect Connection
 date: 2022-02-16
 tags: github
 ---    
 
+# OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443
 今天在使用git命令进行push和pull时，出现如下报错     
 ```bash
 Git Pull Failed: unable to access 'https://github.com/jacky-wangjj/jacky-wangjj.github.io.git/': OpenSSL SSL_connect: SSL_ERROR_SYSCALL in connection to github.com:443
