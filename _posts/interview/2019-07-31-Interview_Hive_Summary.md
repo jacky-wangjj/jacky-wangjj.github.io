@@ -53,8 +53,8 @@ Time taken: 0.225 seconds, Fetched: 5 row(s)
 explode(array):列表中的每个元素生成一行
 explode(map):map中每个key-value对生成一行，key为一列，value为一列。
 ```sql
-select explode(arrays) as col from tbl;
-select col from tbl lateral view explode(arrays) tableAlias as col;
+select explode(arrays) as col from tbl; -- 只包含炸开列时可使用该方式
+select col from tbl lateral view explode(arrays) tableAlias as col; -- 包含非炸开列时使用该方式
 ```
 
 使用concat_ws()和collect_set函数进行多行转一行
@@ -413,9 +413,40 @@ set hive.exec.mode.local.auto=true;
 - 合并输入小文件   
 set hive.input.format=org.apache.hadoop.hive.ql.io.CombineHiveInputFormat   
 合并文件数有mapred.max.split.size限制的大小决定    
+set mapreduce.input.fileinputformat.split.maxsize=512000000;    
+set mapreduce.input.fileinputformat.split.minsize.per.node=64000000;    
+set mapreduce.input.fileinputformat.split.minsize.per.rack=64000000;    
+输入小文件合并各参数具体原理    
+1.根据输入目录下的每个文件,如果其长度超过 mapred.max.split.size 以block为单位分成多个split(一个split是一个map的输入)，每个split的长度以block为单位（是blockSize的倍数，但大小不超过mapred.max.split.size），此文件剩下的长度如果大于 mapred.min.split.size.per.node 则生成一个split, 否则先暂时保留    
+2.现在剩下的都是一些长度效短的碎片, 把每个rack下碎片合并, 只要长度超过 mapred.max.split.size 就合并成一个split, 最后如果剩下的碎片比 mapred.min.split.size.per.rack 大, 就合并成一个split, 否则暂时保留.    
+3.把不同rack下的碎片合并, 只要长度超过 mapred.max.split.size 就合并成一个split, 剩下的碎片无论长度, 合并成一个split.    
+
+输入小文件合并具体示例    
+mapred.max.split.size=1000    
+mapred.min.split.size.per.node=300    
+mapred.min.split.size.per.rack=100    
+输入目录下五个文件,rack1下三个文件,长度为2050,1499,10, rack2下两个文件,长度为1010,80. 另外blockSize为500.    
+1.经过第一步, 生成五个split: 1000,1000,1000,499,1000. 剩下的碎片为rack1下:50,10; rack2下10:80
+2.由于两个rack下的碎片和都不超过100, 所以经过第二步, split和碎片都没有变化    
+3.合并四个碎片成一个split, 长度为150    
+
 - 合并输出小文件   
-set hive.merge.smallfiles.avgsize=256000000;当输出文件平均小于该值，启动新job合并文件    
-set hive.merge.size.per.task=64000000;合并之后的文件大小   
+set hive.merge.mapfiles = true; Merge small files at the end of a map-only job，默认为 True
+set hive.merge.mapredfiles=true; Merge small files at the end of a map-reduce job，默认为 False    
+set hive.merge.smallfiles.avgsize=256000000;当输出文件平均大小小于该值时，启动一个新mr-job合并文件;默认为 16000000    
+set hive.merge.size.per.task=64000000;合并之后的文件大小（非rcfile和orcfile格式的表设置的合并小文件参数是生效的）   
+输出小文件合并各参数具体原理    
+1.判断输出目录下的文件平均大小是否小于 hive.merge.smallfiles.avgsize，小于则启动一个单独的任务进行小文件合并    
+2.取参数 hive.merge.smallfiles.avgsize 和 hive.merge.size.per.task 的最大值作为map task的split大小，并将如下参数的值都设置为此值：mapred.max.split.size、mapred.min.split.size、mapred.min.split.size.per.node、mapred.min.split.size.per.rack    
+3.通过设置merge task map的split大小间接实现了分区小文件的合并    
+
+- 动态分区    
+set hive.optimize.sort.dynamic.partition = false; 动态分区时是否按照分区字段进行排序(和对分区字段distribute by一样)，建议关闭
+set hive.exec.dynamic.partition=true; 是否开启动态分区    
+set hive.exec.dynamic.partition.mode=nonstrict; 非严格模式    
+set hive.exec.max.dynamic.partitions.pernode=100000; 每个节点最多生成的分区数    
+set hive.exec.max.dynamic.partitions=10000;    
+set hive.exec.max.created.files=10000;    
 - JVM重用   
 set mapred.job.reuse.jvm.num.tasks=20;    
 JVM重用可以使得job长时间保留slot，直到作业结束，这对于有较多任务和较多小文件的任务非常有意义，减少执行时间。当然这个值不能设置过大，因为有些作业会有reduce任务，如果reduce任务没有完成，则map任务占用的slot不释放，其他的作用可能就需要等待。   
@@ -428,6 +459,12 @@ set mapred.output.compression.type=BLOCK;
 set hive.exec.compress.intermediate=true;   
 set hive.intermediate.compression.codec=org.apache.hadoop.io.compress.SnappyCodec;    
 set hive.intermediate.compression.type=BLOCK;   
+
+- stage目录，写入目标表前的临时目录
+set hive.exec.stagingdir=.hive-stagingdir;    
+
+- mr任务名
+set mapred.job.name=ads_flow_fastapp_channel_index_overview_di_junjie.wang;
 
 ##### Hive Map优化
 set mapred.map.tasks =10; 无效    
@@ -479,9 +516,10 @@ Reduce优化
 numRTasks = min[maxReducers,input.size/perReducer]    
 maxReducers=hive.exec.reducers.max    
 perReducer = hive.exec.reducers.bytes.per.reducer   
-hive.exec.reducers.max 默认 ：999    
-hive.exec.reducers.bytes.per.reducer 默认:1G    
-set mapred.reduce.tasks=10;直接设置   
+set hive.exec.reducers.max 默认 ：999    
+set hive.exec.reducers.bytes.per.reducer 默认:1G 每个reduce处理数据量    
+set mapred.reduce.tasks=10;直接设置  
+set hive.exec.reducers.max=1009; reduce最大个数，默认值 1009；一般不需要调整    
 
 ##### Hive查询操作优化
 - join优化    
@@ -504,6 +542,23 @@ set hive.groupby.mapaggr.checkinterval=100000;--这个是group的键对应的记
 - count distinct优化    
 select count(distinct id) from tbl;   
 select count(1) from (select id from tbl group by id) t;    
+
+- distribute by 作用
+1.结合sort by实现局部排序
+
+2.生成数据时防止产生太多小文件
+在insert一个分区的数据时，这个分区内的文件个数和sql最后运算结束的map/reduce task个数有关，如果在最后的task数量是4那么每个分区内大概率是4个文件（除非有个task内没有本分区的数据），比如按dt分区，那么在sql最后使用 distribute by dt可以实现最后每个dt分区内就一个文件    
+
+3.防止创建文件数太多报错
+[Fatal Error] total number of created files now is 100216, which exceeds 100000. Killing the job.
+
+4.数据均匀划分
+distribute by cast(rand() * 10 as int)
+
+- hive读取超大行数据内存溢出
+set mapreduce.input.linerecordreader.line.maxlength=200000000; 长度超过该阈值时丢弃该行    
+当hive读取一个表的数据文件时，有两行数据在300m左右，导致map阶段内存溢出，而且不能通过length函数过滤，具体原因是溢出是发生在Text对象tostring的时候，会重新分配一块内存：    
+
 
 ##### Hive查询结果导出到文件
 - insert overwrite directory    
